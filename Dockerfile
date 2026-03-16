@@ -1,25 +1,30 @@
-# Use official Java 21 image
+# Use Java 21 base image
 FROM eclipse-temurin:21-jdk-jammy
 
 # Set working directory
 WORKDIR /app
 
-# Copy Maven wrapper and pom.xml
-COPY mvnw .
-COPY .mvn .mvn
+# Copy pom.xml first (for dependency caching)
 COPY pom.xml .
+
+# Copy Maven wrapper files
+COPY .mvn .mvn
+COPY mvnw .
+
+# Give execute permission to mvnw
+RUN chmod +x mvnw
 
 # Download dependencies
 RUN ./mvnw dependency:go-offline
 
-# Copy project source
+# Copy source code
 COPY src src
 
 # Build the project
 RUN ./mvnw clean package -DskipTests
 
-# Expose application port
+# Expose port
 EXPOSE 8080
 
 # Run the jar file
-CMD ["java", "-jar", "target/emergency-blood-connector-0.0.1-SNAPSHOT.jar"]
+CMD ["java","-jar","target/emergency-blood-connector-0.0.1-SNAPSHOT.jar"]
